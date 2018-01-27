@@ -1,0 +1,145 @@
+---
+title: "Chapter2_BetaBinomial"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(ggplot2)
+```
+
+# R Beta Distribution
+
+### Beta distribution
+\begin{equation}
+\text{Beta}(\theta; \alpha, \beta) = \frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha) \Gamma(\beta)} \theta^{\alpha -1} (1 - \theta)^{\beta - 1}
+\end{equation}
+
+In R this function is $dbeta(\alpha,\beta)$.
+
+
+### Beta function
+\begin{equation}
+B(\alpha,\beta) = \int_0^1 \theta^{\alpha -1} (1 - \theta)^{\beta - 1} d \theta = \frac{\Gamma(\alpha) \Gamma(\beta)}{\Gamma(\alpha + \beta)}
+\end{equation}
+
+
+#### Expected Value of Beta distribution
+
+\begin{equation}
+E[\theta] = \int_0^1 \theta \frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha) \Gamma(\beta)} \theta^{\alpha -1} (1 - \theta)^{\beta - 1} d \theta = \frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha) \Gamma(\beta)} \int_0^1 \theta \theta^{\alpha -1} (1 - \theta)^{\beta - 1} d \theta = 
+\frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha) \Gamma(\beta)} \int_0^1 \theta^{\alpha} (1 - \theta)^{\beta - 1} d \theta
+\end{equation}
+
+Where $\Gamma(n) = (n-1)!$
+
+\begin{equation}
+E[\theta] = \frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha) \Gamma(\beta)} \frac{\Gamma(\alpha + 1) \Gamma(\beta)}{\Gamma(\alpha + \beta + 1)} = \frac{\alpha}{\alpha + \beta}
+\end{equation}
+
+#### Variance of Beta
+
+\begin{equation}
+Var[\theta] = \frac{\alpha\beta}{(\alpha + \beta)^2 (\alpha + \beta + 1)}
+\end{equation}
+
+```{r}
+n = 1000
+p1 = rbeta(n,1,1)
+p2 = rbeta(n,25,25)
+p3 = rbeta(n,5,7)
+p4 = rbeta(n,7,2)
+p = c(p1,p2,p3,p4)
+lab = factor(c(rep("1,1",n),rep("25,25",n),rep("5,7",n),rep("7,2",n)))
+ggplot(data.frame()) + geom_density(aes(x=p,color=lab))
+```
+In R this function is $beta(\alpha,\beta)$.
+
+# Fitting a beta distribution using a normal approximation.
+
+Using an $Beta(\theta,7,2)$, let us try to fit a normal distirbution to it.
+
+```{r}
+
+n = 1000
+p = rbeta(n,10,2)
+mu = mean(p)
+v = var(p)
+x = rnorm(n,mean = mu, sd = sqrt(v))
+
+p_trans = log(p / (1-p) )
+mu_p_trans = mean(p_trans)
+v_p_trans = var(p_trans)
+
+x2 = rnorm(n,mean = mu_p_trans, sd = sqrt(v_p_trans))
+x2_untrans = exp(x2) / (1 + exp(x2))
+
+vals = c(p,x,x2_untrans)
+lab = c(rep("b 10 ,2",n),rep("normal",n), rep("normal log(p / (1 - p))",n))
+ggplot(data.frame()) + geom_density(aes(x=vals,color=lab))
+
+```
+
+The normal approximation using the logit transform $log(p / (1-p))$ works better than just doing a simple normal transformation.
+
+## Binomial likelihood with Beta prior over $\theta$ has a Beta posterior over $\theta$
+
+A binomial likelihood with $y$ successes from $n$ trials is proportional to
+\begin{equation}
+p(y | \theta) \propto \theta^{y} (1 - \theta)^{n -y}
+\end{equation}
+
+The prior of $\theta$ is proportional to
+
+\begin{equation}
+p(\theta) \propto \theta^{\alpha - 1} (1 - \theta) ^{\beta - 1}
+\end{equation}
+
+which is a beta distribution with parameters $\alpha$ and $\beta$: $\theta \sim \text{Beta}(\alpha,\beta)$. This suggests the prior density corresponds to $\alpha -1$ successes and $\beta - 1$ failures.
+
+The postierior distribution $p(\theta | y)$ is proportional to
+\begin{equation}
+p(\theta | y) \propto \theta^{y} (1 - \theta)^{n -y} \theta^{\alpha - 1} (1 - \theta) ^{\beta - 1} = \theta^{y + \alpha - 1} (1 - \theta)^{n - y + \beta - 1}
+\end{equation}
+
+The posterior distribution is thus represented by $\text{Beta}(\theta | \alpha + y, \beta + n - y)$
+
+
+### Example of how posterior changes as we get more evidence
+
+```{r}
+
+# prior
+alpha = 3
+beta = 3
+
+beta_llh = function(theta,alpha,beta) {
+  theta^(alpha - 1) * (1 - theta)^(beta - 1)
+}
+
+thetas = seq(0,1,0.01)
+df.prior = data.frame(llh = beta_llh(thetas,alpha,beta),theta=thetas)
+ggplot(df.prior) + geom_line(aes(x=theta,y=llh)) + ggtitle("Prior distribution: 2 success, 2 failure")
+
+data = rbinom(20,prob = 0.7, size = 1)
+successes = 0
+failures = 0
+for(d in data) {
+  if(d == 1) {
+    successes = successes + 1
+    alpha = alpha + 1
+  } else {
+    failures = failures + 1
+    beta = beta + 1
+  }
+  df.posterior = data.frame(llh = beta_llh(thetas,alpha,beta),theta=thetas)
+  gplot = ggplot(df.posterior) + geom_line(aes(x=theta,y=llh)) + ggtitle(paste0("Posterior after: ",successes," successes, and failures = ", failures))
+  print(gplot)
+}
+df.ml = data.frame(llh = beta_llh(thetas,successes + 1,failures + 1),theta=thetas)
+ ggplot(df.ml) + geom_line(aes(x=theta,y=llh)) + ggtitle("ML Estimator")
+```
+
+
+### Biased Coin Example
+In this example, we will start with the assumption that the coin is fair and keep flipping the coin until we can declare it to be biased. We can do this by integrating the posterior distribution and computing $p(\theta > 0.5 | y) > 0.99$. We can use either numerical integration or simulation.
