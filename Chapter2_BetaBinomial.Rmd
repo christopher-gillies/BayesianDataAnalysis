@@ -143,3 +143,35 @@ df.ml = data.frame(llh = beta_llh(thetas,successes + 1,failures + 1),theta=theta
 
 ### Biased Coin Example
 In this example, we will start with the assumption that the coin is fair and keep flipping the coin until we can declare it to be biased. We can do this by integrating the posterior distribution and computing $p(\theta > 0.5 | y) > 0.99$. We can use either numerical integration or simulation.
+
+
+
+```{r}
+
+p = 0.6
+alpha = 11
+beta = 11
+n = 200
+
+data = rbinom(n,prob = p,size = 1)
+s = 0
+f = 0
+ps_g_0_5 = c( pbeta(0.5,alpha,beta,lower.tail=F))
+
+for( d in data) {
+  if(d == 1){
+    alpha = alpha + 1
+  } else {
+    beta = beta + 1
+  }
+  ps_g_0_5 = c(ps_g_0_5, pbeta(0.5,alpha,beta,lower.tail=F))
+}
+
+ggplot(data.frame(p=ps_g_0_5,n=0:n)) + geom_line(aes(x=n,y=p)) + geom_abline(slope = 0, intercept = 0.99) + ggtitle("Prob theta > 0.5")
+
+theta = seq(0,1,0.01)
+y = dbeta(theta,alpha,beta)
+ggplot(data.frame(theta=theta,prob=y))+ geom_line(aes(x=theta,y=prob)) + ggtitle("Posterior density")
+```
+
+
