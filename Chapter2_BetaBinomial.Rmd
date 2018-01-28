@@ -144,7 +144,39 @@ df.ml = data.frame(llh = beta_llh(thetas,successes + 1,failures + 1),theta=theta
 ### Biased Coin Example
 In this example, we will start with the assumption that the coin is fair and keep flipping the coin until we can declare it to be biased. We can do this by integrating the posterior distribution and computing $p(\theta > 0.5 | y) > 0.99$. We can use either numerical integration or simulation.
 
+Compute the probability of positive association (PPA).
+\begin{equation}
+\text{Posterior odds (PO)} = \text{BF} \times \text{Prior odds (PrO)}
+\end{equation}
 
+\begin{equation}
+PO = \frac{\int_0^1 \theta^{y + \alpha - 1} (1 - \theta)^{n - y + \beta - 1} d \theta}{\theta_0^{y + \alpha - 1} (1 - \theta_0)^{n - y + \beta - 1}} \times \text{PrO}
+\end{equation}
+
+If $\theta_0 = 0.5$, then
+
+\begin{equation}
+BF = \frac{\int_0^1 \theta^{y + \alpha - 1} (1 - \theta)^{n - y + \beta - 1} d \theta}{0.5^{y + \alpha - 1} (0.5)^{n - y + \beta - 1}} =\frac{\int_0^1 \theta^{y + \alpha - 1} (1 - \theta)^{n - y + \beta - 1} d \theta}{0.5^{n + \alpha + \beta - 2}}
+\end{equation}
+
+\begin{equation}
+PO = \frac{PPA}{1 - PPA} \Rightarrow PO (1 - PPA) = PPA \Rightarrow PPA = PO - PO \times PPA  \Rightarrow PPA + PPA \times PO - PO 
+\end{equation}
+
+\begin{equation}
+\Rightarrow PPA ( 1 + PO) = PO \Rightarrow PPA = \frac{PO}{1 + PO}
+\end{equation}
+
+```{r}
+bf = function(alpha, beta,alt_p=0.5) {
+  beta(alpha,beta) / (alt_p^(alpha + beta - 2))
+}
+
+ppa = function(bf,prior_odds=1) {
+  posterior_odds=bf*prior_odds
+  posterior_odds / (1 + posterior_odds)
+}
+```
 
 ```{r}
 
@@ -157,17 +189,20 @@ data = rbinom(n,prob = p,size = 1)
 s = 0
 f = 0
 ps_g_0_5 = c( pbeta(0.5,alpha,beta,lower.tail=F))
-
+ppas = c(ppa(bf(alpha,beta)))
 for( d in data) {
   if(d == 1){
     alpha = alpha + 1
   } else {
     beta = beta + 1
   }
+  ppas = c(ppas, ppa(bf(alpha,beta)))
   ps_g_0_5 = c(ps_g_0_5, pbeta(0.5,alpha,beta,lower.tail=F))
 }
 
 ggplot(data.frame(p=ps_g_0_5,n=0:n)) + geom_line(aes(x=n,y=p)) + geom_abline(slope = 0, intercept = 0.99) + ggtitle("Prob theta > 0.5")
+
+ggplot(data.frame(p=ppas,n=0:n)) + geom_line(aes(x=n,y=p)) + geom_abline(slope = 0, intercept = 0.99) + ggtitle("PPA > 0.5")
 
 theta = seq(0,1,0.01)
 y = dbeta(theta,alpha,beta)
