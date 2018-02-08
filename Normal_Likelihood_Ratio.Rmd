@@ -1,0 +1,83 @@
+---
+title: "Normal Likelihood Ratio"
+author: "Christopher Gillies"
+date: "2/8/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Model
+We want to compare the likelihood of two models. One were we assume the means are the same, and the other where we assume the means are different. We will assume the variance within each group is different but constant. This model should be very similar to a welch t-test for large sample sizes.
+
+Normal distribution density function
+\begin{equation}
+f(x|\mu,\sigma^2) = \frac{1}{\sqrt{2 \pi \sigma^2}} \exp \left [ -\frac{(x-\mu)^2}{2\sigma^2} \right ]
+\end{equation}
+
+$H_0: \mu_0 = \mu_1$
+
+$H_1: \mu_0 \ne \mu_1$
+
+
+
+Assume we have $n_0$ observations in group 0 and $n_1$ observations in group 1 and given the group status the observations are IID.
+Under $H_0$ we have the following likelihood:
+
+\begin{equation}
+L(Y|H_0) = \left ( \frac{1}{\sqrt{2 \pi \hat \sigma_0^2}} \right )^{n_0}  \left ( \frac{1}{\sqrt{2 \pi \hat \sigma_1^2}} \right )^{n_1} \exp \left [ -\sum_{i=0}^{n_0}\frac{(Y_{0i}- \hat \mu_{0+1})^2}{2 \hat \sigma_0^2} \right ] \exp \left [ -\sum_{i=0}^{n_1}\frac{(Y_{1i}- \hat \mu_{0+1})^2}{2 \hat \sigma_1^2} \right ]
+\end{equation}
+
+where $Y_{0i} is the value of the $i$th example from group 0, the same for $Y_{1i}, $\hat \sigma_0^2$ is estimated the variance in group 0, $\hat \sigma_1^2$ is the estimated variance from group $1, and  $\mu_{0+1}$ is the pooled mean estimate.
+
+\begin{equation}
+L(Y|H_1) = \left ( \frac{1}{\sqrt{2 \pi \hat \sigma_0^2}} \right )^{n_0} \left ( \frac{1}{\sqrt{2 \pi \hat \sigma_1^2}} \right )^{n_1} \exp \left [ -\sum_{i=0}^{n_0}\frac{(Y_{0i}- \hat \mu_{0})^2}{2 \hat \sigma_0^2} \right ] \exp \left [ -\sum_{i=0}^{n_1}\frac{(Y_{1i}- \hat \mu_{1})^2}{2 \hat \sigma_1^2} \right ]
+\end{equation}
+
+where $\hat \mu_{0}$ is the MLE of the mean of group 0, and $\hat \mu_{1}$ is the MLE of the mean of group 1.
+
+\begin{equation}
+\frac{ L(Y|H_0) }{L(Y|H_1)} = \frac { \exp \left [ -\sum_{i=0}^{n_0}(Y_{0i}- \hat \mu_{0+1})^2 \right ] \exp \left [ -\sum_{i=0}^{n_1}(Y_{1i}- \hat \mu_{0+1})^2 \right ] } {\exp \left [ -\sum_{i=0}^{n_0}(Y_{0i}- \hat \mu_{0})^2 \right ] \exp \left [ -\sum_{i=0}^{n_1}(Y_{1i}- \hat \mu_{1})^2 \right ] } = \frac{ \exp(-n \sigma_{0+1}) } {  \exp(-n_0 \sigma_{0} - n_1 \sigma_{1})  }
+\end{equation}
+
+
+Taking the log we have
+\begin{equation}
+-2 \log \left ( \frac{ L(Y|H_0) }{L(Y|H_1)} \right ) = 2 ( n \hat \sigma_{0+1} - n_0 \hat \sigma_{0} - n_1 \hat \sigma_{1} )
+\end{equation}
+
+\begin{equation}
+-2 \log \left ( \frac{ L(Y|H_0) }{L(Y|H_1)} \right ) \sim \chi^2_2
+\end{equation}
+
+
+```{r }
+pop.var <- function(x) var(x) * (length(x)-1) / length(x)
+
+lrt = function(s0,s1) {
+  pooled = c(s0,s1)
+  n = length(pooled)
+  n0 = length(s0)
+  n1 = length(s1)
+  chi = 2 * ((n * pop.var(pooled)) - n0 * pop.var(s0) - n1 * pop.var(s1))
+  pchisq(chi,df=2,lower.tail=F)
+}
+
+
+p_lrts = c()
+p_ts = c()
+nsim = 1000
+n0 = 100
+n1 = 100
+for(i in seq(1,nsim)) {
+  s0 = rnorm(n0)
+  s1 = rnorm(n1,mean=0)
+  p_ts = c(p_ts,  t.test(s0,s1)$p.val)
+  p_lrts = c(p_lrts,  lrt(s0,s1)) 
+}
+
+sum(p_ts < 0.05) / nsim
+sum(p_lrts < 0.05) / nsim
+```

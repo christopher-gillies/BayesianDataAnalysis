@@ -15,15 +15,21 @@ integrate(function(x) { y(x,sigma=2) },-10,10)
 nc(sigma=2)
 
 prior = function(t,mean=0,sd=1) {
-  dnorm(t,mean=mean,sd=sd)
+  dnorm(t,mean=mean,sd=sd) * nc(sd)
 }
 
 likelihood = function(x,t) {
-  dnorm(x,mean = t)
+  dnorm(x,mean = t) * nc(1)
 }
 
 joint = function(x,t,prior_mean=0,prior_sd=1) {
   likelihood(x,t) * prior(t,mean=prior_mean,sd=prior_sd)
+}
+
+# unormalized joint
+
+joint_un = function(x,t,prior_mean=0,prior_sd=1) {
+  y(x,mu=t,sigma=1) * y(t,mu=0,sigma=1)
 }
 
 posterior = function(t,y,sd=1,prior_mean=0,prior_sd=1) {
@@ -41,6 +47,7 @@ plot( seq(-10,10,0.1), joint(1,seq(-10,10,0.1),prior_mean=0,prior_sd = 1),type="
 
 #integrate(function(t) { joint(1,t,prior_sd = 10) },lower=-10,upper=10 )
 joint_nc =  integrate(function(t) { joint(1,t) },lower=-10,upper=10 )$value
+joint_un_nc = integrate(function(t) { joint_un(1,t) },lower=-10,upper=10 )$value
 
 plot( seq(-10,10,0.1), joint(1,seq(-10,10,0.1) ,prior_mean=0,prior_sd = 1) / joint_nc ,type="l" )
 
