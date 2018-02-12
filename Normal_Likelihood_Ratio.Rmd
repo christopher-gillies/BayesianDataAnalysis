@@ -177,3 +177,29 @@ sum(p_lrts < 0.05) / nsim
 ```
 
 So we did all that stuff and got the same thing as a t-test and linear regression! What was the point? To learn how to do a likelihood ratio test so that we can then do a Bayes factor.
+
+# Bayes Factor Based Approach
+
+To compute the Bayes Factor we need $p(y|H_0)$ and $p(y|H_1)$, where these are the probabilities of the data given the corresponding models.
+
+\begin{equation}
+p(y) = \int p(y|\theta) p(\theta) d\theta
+\end{equation}
+
+This integral can be challenging to compute. But if we can compute the normalizing constant for the posterior distribution ($p(\theta|y)$), the we can compute $p(y)$ without the need to compute the integral.
+
+\begin{equation}
+p(\theta | y) \propto p(y|\theta) p(\theta) = p(y,\theta)
+\end{equation}
+
+\begin{equation}
+p(\theta | y) p(y) =  p(y,\theta) =  p(y|\theta) p(\theta)
+\end{equation}
+
+\begin{equation}
+ p(y) = \frac{p(y|\theta) p(\theta)}{p(\theta | y)}
+\end{equation}
+
+So if we know the posterior distribution of $\theta$ given $y$, then we can compute $p(y)$ using any value of $\theta$.
+
+
