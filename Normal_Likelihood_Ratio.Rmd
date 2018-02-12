@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Model
-We want to compare the likelihood of two models. One were we assume the means are the same, and the other where we assume the means are different. We will assume the variance within each group is different but constant. This model should be very similar to a welch t-test for large sample sizes.
+We want to compare the likelihood of two models. One were we assume the means are the same, and the other where we assume the means are different. We  assume the variance within each group is different but known.
 
 Normal distribution density function
 \begin{equation}
@@ -27,19 +27,19 @@ Assume we have $n_0$ observations in group 0 and $n_1$ observations in group 1 a
 Under $H_0$ we have the following likelihood:
 
 \begin{equation}
-L(Y|H_0) = \left ( \frac{1}{\sqrt{2 \pi \hat \sigma_0^2}} \right )^{n_0}  \left ( \frac{1}{\sqrt{2 \pi \hat \sigma_1^2}} \right )^{n_1} \exp \left [ -\sum_{i=0}^{n_0}\frac{(Y_{0i}- \hat \mu_{0+1})^2}{2 \hat \sigma_0^2} \right ] \exp \left [ -\sum_{i=0}^{n_1}\frac{(Y_{1i}- \hat \mu_{0+1})^2}{2 \hat \sigma_1^2} \right ]
+L(Y|H_0) = \left ( \frac{1}{\sqrt{2 \pi \sigma_0^2}} \right )^{n_0}  \left ( \frac{1}{\sqrt{2 \pi \sigma_1^2}} \right )^{n_1} \exp \left [ -\sum_{i=0}^{n_0}\frac{(Y_{0i}- \hat \mu_{0+1})^2}{2 \sigma_0^2} \right ] \exp \left [ -\sum_{i=0}^{n_1}\frac{(Y_{1i}- \hat \mu_{0+1})^2}{2  \sigma_1^2} \right ]
 \end{equation}
 
-where $Y_{0i} is the value of the $i$th example from group 0, the same for $Y_{1i}, $\hat \sigma_0^2$ is estimated the variance in group 0, $\hat \sigma_1^2$ is the estimated variance from group $1, and  $\mu_{0+1}$ is the pooled mean estimate.
+where $Y_{0i}$ is the value of the $i$th example from group 0, the same for $Y_{1i}$, $\sigma_0^2$ is the variance in group 0, $\sigma_1^2$ is the estimated variance from group $1, and  $\mu_{0+1}$ is the pooled mean estimate.
 
 \begin{equation}
-L(Y|H_1) = \left ( \frac{1}{\sqrt{2 \pi \hat \sigma_0^2}} \right )^{n_0} \left ( \frac{1}{\sqrt{2 \pi \hat \sigma_1^2}} \right )^{n_1} \exp \left [ -\sum_{i=0}^{n_0}\frac{(Y_{0i}- \hat \mu_{0})^2}{2 \hat \sigma_0^2} \right ] \exp \left [ -\sum_{i=0}^{n_1}\frac{(Y_{1i}- \hat \mu_{1})^2}{2 \hat \sigma_1^2} \right ]
+L(Y|H_1) = \left ( \frac{1}{\sqrt{2 \pi \sigma_0^2}} \right )^{n_0} \left ( \frac{1}{\sqrt{2 \pi  \sigma_1^2}} \right )^{n_1} \exp \left [ -\sum_{i=0}^{n_0}\frac{(Y_{0i}- \hat \mu_{0})^2}{2  \sigma_0^2} \right ] \exp \left [ -\sum_{i=0}^{n_1}\frac{(Y_{1i}- \hat \mu_{1})^2}{2 \sigma_1^2} \right ]
 \end{equation}
 
 where $\hat \mu_{0}$ is the MLE of the mean of group 0, and $\hat \mu_{1}$ is the MLE of the mean of group 1.
 
 \begin{equation}
-\frac{ L(Y|H_0) }{L(Y|H_1)} = \frac { \exp \left [ -\sum_{i=0}^{n_0}(Y_{0i}- \hat \mu_{0+1})^2 \right ] \exp \left [ -\sum_{i=0}^{n_1}(Y_{1i}- \hat \mu_{0+1})^2 \right ] } {\exp \left [ -\sum_{i=0}^{n_0}(Y_{0i}- \hat \mu_{0})^2 \right ] \exp \left [ -\sum_{i=0}^{n_1}(Y_{1i}- \hat \mu_{1})^2 \right ] } = \frac{ \exp(-n \sigma_{0+1}) } {  \exp(-n_0 \sigma_{0} - n_1 \sigma_{1})  }
+\frac{ L(Y|H_0) }{L(Y|H_1)} = \frac { \exp \left [ -\sum_{i=0}^{n_0}(Y_{0i}- \hat \mu_{0+1})^2 \right ] \exp \left [ -\sum_{i=0}^{n_1}(Y_{1i}- \hat \mu_{0+1})^2 \right ] } {\exp \left [ -\sum_{i=0}^{n_0}(Y_{0i}- \hat \mu_{0})^2 \right ] \exp \left [ -\sum_{i=0}^{n_1}(Y_{1i}- \hat \mu_{1})^2 \right ] } = \frac{ \exp(-n \hat \sigma_{0+1}) } {  \exp(-n_0 \hat \sigma_{0} - n_1 \hat \sigma_{1})  }
 \end{equation}
 
 
@@ -49,7 +49,7 @@ Taking the log we have
 \end{equation}
 
 \begin{equation}
--2 \log \left ( \frac{ L(Y|H_0) }{L(Y|H_1)} \right ) \sim \chi^2_2
+-2 \log \left ( \frac{ L(Y|H_0) }{L(Y|H_1)} \right ) \sim \chi^2_1
 \end{equation}
 
 
@@ -62,7 +62,7 @@ lrt = function(s0,s1) {
   n0 = length(s0)
   n1 = length(s1)
   chi = 2 * ((n * pop.var(pooled)) - n0 * pop.var(s0) - n1 * pop.var(s1))
-  pchisq(chi,df=2,lower.tail=F)
+  pchisq(chi,df=1,lower.tail=F)
 }
 
 
@@ -71,13 +71,20 @@ p_ts = c()
 nsim = 1000
 n0 = 100
 n1 = 100
+p_lms = c()
 for(i in seq(1,nsim)) {
   s0 = rnorm(n0)
-  s1 = rnorm(n1,mean=0)
+  s1 = rnorm(n1,mean=0.1)
+  y = c(s0,s1)
+  x = c( rep(1,length(s0)), rep(0,length(s1)) )
   p_ts = c(p_ts,  t.test(s0,s1)$p.val)
   p_lrts = c(p_lrts,  lrt(s0,s1)) 
+  null = lm(y ~ 1)
+  alt = lm(y ~ x)
+  p_lms = c(p_lms, anova(null,alt,test="Chisq")[2,5])
 }
 
 sum(p_ts < 0.05) / nsim
+sum(p_lms < 0.05 ) / nsim
 sum(p_lrts < 0.05) / nsim
 ```
