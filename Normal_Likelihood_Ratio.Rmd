@@ -23,30 +23,48 @@ $H_1: \mu_0 \ne \mu_1$
 
 
 
-Assume we have $n_0$ observations in group 0 and $n_1$ observations in group 1 and given the group status the observations are IID.
+Assume we have $n_0$ observations in group 0 and $n_1$ observations in group 1 and given the group status the observations are IID with the same variance
+.
 Under $H_0$ we have the following likelihood:
 
 \begin{equation}
-L(Y|H_0) = \left ( \frac{1}{\sqrt{2 \pi \sigma_0^2}} \right )^{n_0}  \left ( \frac{1}{\sqrt{2 \pi \sigma_1^2}} \right )^{n_1} \exp \left [ -\sum_{i=0}^{n_0}\frac{(Y_{0i}- \hat \mu_{0+1})^2}{2 \sigma_0^2} \right ] \exp \left [ -\sum_{i=0}^{n_1}\frac{(Y_{1i}- \hat \mu_{0+1})^2}{2  \sigma_1^2} \right ]
+L(Y|H_0) = \left ( \frac{1}{\sqrt{2 \pi \sigma^2}} \right )^{n_0}  \left ( \frac{1}{\sqrt{2 \pi \sigma^2}} \right )^{n_1} \exp \left [ -\sum_{i=0}^{n_0}\frac{(Y_{0i}- \hat \mu_{0+1})^2}{2 \sigma^2} \right ] \exp \left [ -\sum_{i=0}^{n_1}\frac{(Y_{1i}- \hat \mu_{0+1})^2}{2  \sigma^2} \right ]
 \end{equation}
 
-where $Y_{0i}$ is the value of the $i$th example from group 0, the same for $Y_{1i}$, $\sigma_0^2$ is the variance in group 0, $\sigma_1^2$ is the estimated variance from group $1, and  $\mu_{0+1}$ is the pooled mean estimate.
+\begin{equation}
+L(Y|H_0) = \left ( \frac{1}{\sqrt{2 \pi \sigma^2}} \right )^{n}  \exp \left [ -\sum_{i=0}^{n}\frac{(Y_{i}- \hat \mu_{0+1})^2}{2 \sigma^2} \right ]
+\end{equation}
+
+where $Y_{0i}$ is the value of the $i$th example from group 0, the same for $Y_{1i}$, $\sigma^2$ is the variance is the overall variance and  $\mu_{0+1}$ is the pooled mean estimate.
 
 \begin{equation}
-L(Y|H_1) = \left ( \frac{1}{\sqrt{2 \pi \sigma_0^2}} \right )^{n_0} \left ( \frac{1}{\sqrt{2 \pi  \sigma_1^2}} \right )^{n_1} \exp \left [ -\sum_{i=0}^{n_0}\frac{(Y_{0i}- \hat \mu_{0})^2}{2  \sigma_0^2} \right ] \exp \left [ -\sum_{i=0}^{n_1}\frac{(Y_{1i}- \hat \mu_{1})^2}{2 \sigma_1^2} \right ]
+L(Y|H_1) = \left ( \frac{1}{\sqrt{2 \pi \sigma^2}} \right )^{n_0} \left ( \frac{1}{\sqrt{2 \pi  \sigma^2}} \right )^{n_1} \exp \left [ -\sum_{i=0}^{n_0}\frac{(Y_{0i}- \hat \mu_{0})^2}{2  \sigma^2} \right ] \exp \left [ -\sum_{i=0}^{n_1}\frac{(Y_{1i}- \hat \mu_{1})^2}{2 \sigma^2} \right ]
+\end{equation}
+
+\begin{equation}
+L(Y|H_1) = \left ( \frac{1}{\sqrt{2 \pi \sigma^2}} \right )^{n} \exp \left [ -\sum_{i=0}^{n_0}\frac{(Y_{0i}- \hat \mu_{0})^2}{2  \sigma^2} \right ] \exp \left [ -\sum_{i=0}^{n_1}\frac{(Y_{1i}- \hat \mu_{1})^2}{2 \sigma^2} \right ]
 \end{equation}
 
 where $\hat \mu_{0}$ is the MLE of the mean of group 0, and $\hat \mu_{1}$ is the MLE of the mean of group 1.
 
 \begin{equation}
-\frac{ L(Y|H_0) }{L(Y|H_1)} = \frac { \exp \left [ -\sum_{i=0}^{n_0}(Y_{0i}- \hat \mu_{0+1})^2 \right ] \exp \left [ -\sum_{i=0}^{n_1}(Y_{1i}- \hat \mu_{0+1})^2 \right ] } {\exp \left [ -\sum_{i=0}^{n_0}(Y_{0i}- \hat \mu_{0})^2 \right ] \exp \left [ -\sum_{i=0}^{n_1}(Y_{1i}- \hat \mu_{1})^2 \right ] } = \frac{ \exp(-n \hat \sigma_{0+1}) } {  \exp(-n_0 \hat \sigma_{0} - n_1 \hat \sigma_{1})  }
+\frac{ L(Y|H_0) }{L(Y|H_1)} = \frac {  \exp \left [  \frac{-1}{2\sigma^2} \sum_{i=0}^{n}(Y_{i}- \hat \mu_{0+1})^2 \right ] } { \exp \left [ \frac{-1}{2\sigma^2} \sum_{i=0}^{n_0}(Y_{0i}- \hat \mu_{0})^2 \right ] \exp \left [ \frac{-1}{2\sigma^2} \sum_{i=0}^{n_1}(Y_{1i}- \hat \mu_{1})^2 \right ] } = \frac{ \exp( \frac{-n \hat \sigma_{0+1}^2}{2\sigma^2} ) } {  \exp(\frac{-n_0 \hat \sigma_{0}^2 - n_1 \hat \sigma_{1}}{2\sigma^2})  }
 \end{equation}
 
 
 Taking the log we have
 \begin{equation}
--2 \log \left ( \frac{ L(Y|H_0) }{L(Y|H_1)} \right ) = 2 ( n \hat \sigma_{0+1} - n_0 \hat \sigma_{0} - n_1 \hat \sigma_{1} )
+-2 \log \left ( \frac{ L(Y|H_0) }{L(Y|H_1)} \right ) = -2 \left ( \frac{n_0 \hat \sigma_{0}^2 + n_1 \hat \sigma_{1}}{2\sigma^2} - \frac{n \hat \sigma_{0+1}^2}{2\sigma^2} \right ) = \frac{-1}{\sigma^2} \left ( n_0 \hat \sigma_{0}^2 + n_1 \hat \sigma_{1} - n \hat \sigma_{0+1}^2 \right )
 \end{equation}
+
+We can estimate $\sigma^2$ using a pooled variance estimate $S_p^2$.
+
+
+\begin{equation}
+S_p^2=\frac{ (n_0 - 1) S_0^2 + (n_1 - 1) S_1^2} { n_0 + n_1 - 2}
+\end{equation}
+
+where $S_0^2$ and $S_1^2$ are sample variance estiamtes for group 0 and group 1.
 
 \begin{equation}
 -2 \log \left ( \frac{ L(Y|H_0) }{L(Y|H_1)} \right ) \sim \chi^2_1
@@ -56,15 +74,84 @@ Taking the log we have
 ```{r }
 pop.var <- function(x) var(x) * (length(x)-1) / length(x)
 
+pooled.var <- function(s0,s1) {
+  s0.var = var(s0)
+  s1.var = var(s1)
+  
+  n0 = length(s0)
+  n1 = length(s1)
+  
+  ( (n0 - 1) * s0.var + (n1 - 1) * s1.var ) / (n0 + n1 - 2)
+}
+
 lrt = function(s0,s1) {
   pooled = c(s0,s1)
   n = length(pooled)
   n0 = length(s0)
   n1 = length(s1)
-  chi = 2 * ((n * pop.var(pooled)) - n0 * pop.var(s0) - n1 * pop.var(s1))
+  pooled.var.est = pooled.var(s0,s1)
+  
+  chi =  -1/pooled.var.est * ( n0 * pop.var(s0) + n1 * pop.var(s1) - n * pop.var(pooled)  )
   pchisq(chi,df=1,lower.tail=F)
 }
 
+lrt.simple = function(s0,s1) {
+  pooled = c(s0,s1)
+  pooled.mean = mean(pooled)
+  pooled.var.est = pooled.var(s0,s1)
+  s0.mean = mean(s0)
+  s1.mean = mean(s1)
+  
+  chi = -2 * (sum(dnorm(pooled,mean=pooled.mean,sd=sqrt(pooled.var.est),log = T)) - 
+    sum(dnorm(s0,mean=s0.mean,sd=sqrt(pooled.var.est),log = T)) - sum(dnorm(s1,mean=s1.mean,sd=sqrt(pooled.var.est),log = T)))
+  pchisq(chi,df=1,lower.tail=F)
+}
+
+```
+
+## Compare LRT simple verus formula
+```{r }
+n0 = 100
+n1 = 100
+s0 = rnorm(n0,sd=2)
+s1 = rnorm(n1,sd=2)
+lrt.simple(s0,s1)
+lrt(s0,s1)
+
+```
+
+
+## Check Type I Error
+
+```{r }
+
+p_lrts = c()
+p_ts = c()
+nsim = 1000
+n0 = 100
+n1 = 100
+p_lms = c()
+for(i in seq(1,nsim)) {
+  s0 = rnorm(n0,sd=2)
+  s1 = rnorm(n1,sd=2)
+  y = c(s0,s1)
+  x = c( rep(1,length(s0)), rep(0,length(s1)) )
+  p_ts = c(p_ts,  t.test(s0,s1,var.equal = TRUE)$p.val)
+  p_lrts = c(p_lrts,  lrt.simple(s0,s1)) 
+  null = lm(y ~ 1)
+  alt = lm(y ~ x)
+  p_lms = c(p_lms, anova(null,alt,test="Chisq")[2,5])
+}
+
+sum(p_ts < 0.05) / nsim
+sum(p_lms < 0.05 ) / nsim
+sum(p_lrts < 0.05) / nsim
+```
+
+
+## Check Power
+
+```{r }
 
 p_lrts = c()
 p_ts = c()
@@ -74,7 +161,7 @@ n1 = 100
 p_lms = c()
 for(i in seq(1,nsim)) {
   s0 = rnorm(n0)
-  s1 = rnorm(n1,mean=0.1)
+  s1 = rnorm(n1,mean=0.2)
   y = c(s0,s1)
   x = c( rep(1,length(s0)), rep(0,length(s1)) )
   p_ts = c(p_ts,  t.test(s0,s1)$p.val)
@@ -88,3 +175,5 @@ sum(p_ts < 0.05) / nsim
 sum(p_lms < 0.05 ) / nsim
 sum(p_lrts < 0.05) / nsim
 ```
+
+So we did all that stuff and got the same thing as a t-test and linear regression! What was the point? To learn how to do a likelihood ratio test so that we can then do a Bayes factor.
