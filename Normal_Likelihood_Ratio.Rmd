@@ -202,4 +202,31 @@ p(\theta | y) p(y) =  p(y,\theta) =  p(y|\theta) p(\theta)
 
 So if we know the posterior distribution of $\theta$ given $y$, then we can compute $p(y)$ using any value of $\theta$.
 
+## Normal prior
+Assume we have $n$ observations, and the prior distribution of $\theta$ is $N(\theta;\mu_0,\tau^2_0)$. 
+\begin{equation}
+p(\theta | y) \propto p(\theta)p(y|\theta) = p(\theta) \prod_{i=1}^{n} p(y_i|\theta)
+\end{equation}
+
+\begin{equation}
+ \propto \exp \left ( -\frac{1}{2\tau_0^2} (\theta-\mu_0)^2   \right ) \exp \left ( \prod_{i=1}^n ( -\frac{1}{2\sigma^2} (y_i-\theta)^2   \right )
+\end{equation}
+
+\begin{equation}
+ \propto \exp \left ( -\frac{1}{2} \left ( \frac{1}{\tau_0^2} (\theta-\mu_0)^2 + \frac{1}{\sigma^2} \sum_{i=1}^n(y_i-\theta)^2 \right )  \right ) 
+\end{equation}
+
+It can be shown that
+\[
+  p(\theta | y_1, ..., y_n) = p(\theta | \bar y) = N(\theta | \mu_n, \tau_n^2)
+\]
+
+\[
+  \mu_n =  \frac{\frac{1}{\tau_0^2}\mu_0 + \frac{n}{\sigma^2}\bar y}{ \frac{1}{\tau_0^2} + \frac{n}{\sigma^2}}
+\]
+
+\[
+\frac{1}{\tau_n^2} = \frac{1}{\tau_0^2} + \frac{n}{\sigma^2}
+\]
+
 
