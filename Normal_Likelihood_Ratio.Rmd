@@ -2,7 +2,7 @@
 title: "Normal Likelihood Ratio"
 author: "Christopher Gillies"
 date: "2/8/2018"
-output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -180,6 +180,13 @@ So we did all that stuff and got the same thing as a t-test and linear regressio
 
 # Bayes Factor Based Approach
 
+\[
+\frac{p(H_1 | y)}{p(H_0 | y)} = \frac{p(y|H_1) )}{p(y|H_0) } \frac{p (H_1}{p (H_0)}
+\]
+
+The posterior odds = Bayes Factor $\times$ prior odds. The Bayes Factor is $\frac{p(y|H_1) )}{p(y|H_0) }$.
+
+
 To compute the Bayes Factor we need $p(y|H_0)$ and $p(y|H_1)$, where these are the probabilities of the data given the corresponding models.
 
 \begin{equation}
@@ -228,5 +235,6 @@ It can be shown that
 \[
 \frac{1}{\tau_n^2} = \frac{1}{\tau_0^2} + \frac{n}{\sigma^2}
 \]
+
 
 
