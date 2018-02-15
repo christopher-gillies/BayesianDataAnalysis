@@ -181,7 +181,7 @@ So we did all that stuff and got the same thing as a t-test and linear regressio
 # Bayes Factor Based Approach
 
 \[
-\frac{p(H_1 | y)}{p(H_0 | y)} = \frac{p(y|H_1) )}{p(y|H_0) } \frac{p (H_1}{p (H_0)}
+\frac{p(H_1 | y)}{p(H_0 | y)} = \frac{p(y|H_1) }{p(y|H_0) } \frac{p (H_1 )}{p (H_0)}
 \]
 
 The posterior odds = Bayes Factor $\times$ prior odds. The Bayes Factor is $\frac{p(y|H_1) )}{p(y|H_0) }$.
@@ -236,5 +236,83 @@ It can be shown that
 \frac{1}{\tau_n^2} = \frac{1}{\tau_0^2} + \frac{n}{\sigma^2}
 \]
 
+### Verify they ways we can compute $p(y)$
+
+\[
+p(y) = \frac{p(y|\theta) p(\theta)}{p(\theta | y)} = \int p(y|\theta) p(\theta) d\theta
+\]
+
+#### Code to compute the likelihood and posterior
+```{r}
+
+likelihood = function(y,known_mean,known_var,log=FALSE) {
+  compute = function(mu) {
+    res = dnorm(y,mean=mu,sd = sqrt(known_var),log=log)
+    if(!log) {
+      prod(res)
+    } else {
+      sum(res)
+    }
+  }
+  
+  #if there are multiple means return a likelihood for each 1
+  if(length(known_mean) > 1) {
+    sapply(known_mean, function(mu) {
+      compute(mu)
+    })
+  } else {
+    compute(known_mean)
+  }
+}
+
+prior = function(mu,prior_mean=0,prior_var=1,log=FALSE) {
+  dnorm(mu,prior_mean,sqrt(prior_var),log=log)
+}
 
 
+joint = function(y,mu,known_var,prior_mean,prior_var,log=FALSE) {
+  if(!log) {
+    likelihood(y,mu,known_var,log=log) * prior(mu,prior_mean,prior_var,log)
+  } else {
+    likelihood(y,mu,known_var,log=log) + prior(mu,prior_mean,prior_var,log)
+  }
+}
+
+posterior = function(y,mu,known_var,prior_mean,prior_var,log=FALSE) {
+  mean_n = 1/prior_var * prior_mean + length(y) / known_var * mean(y)
+  mean_n = mean_n / (1/prior_var + length(y)/known_var) 
+  sd_n = sqrt( 1/(1/prior_var + length(y)/known_var)  )
+  dnorm(mu,mean=mean_n,sd=sd_n,log=log)
+}
+
+```
+
+#### Example
+The posterior and joint should look the same and they should have a constant proportion between them so we can compute $p(y)$ using any value of $\theta$.
+```{r }
+joint(y=1,mu=c(-2,-1,0,1,2),1,0,1)
+posterior(y=1,mu=c(-2,-1,0,1,2),1,0,1)
+
+joint(y=1,mu=c(-2,-1,0,1,2),1,0,1) / posterior(y=1,mu=c(-2,-1,0,1,2),1,0,1)
+
+mus = seq(-10,10,0.01)
+lh = joint(y=c(0,1,1,1,1),mu=mus,1,0,1)
+plot( mus,lh,type="l")
+
+mus = seq(-10,10,0.01)
+lh = posterior(y=c(0,1,1,1,1),mu=mus,1,0,1)
+plot( mus,lh,type="l")
+
+
+#THIS SHOULD BE 1
+integrate(function(mu) {
+  posterior(y=c(0,1,1,0,1),mu=mu,1,0,1)
+},-10,10)
+
+#THESE SHOULD EQUAL
+integrate(function(mu) {
+  joint(y=c(0,1,1,0,1),mu=mu,1,0,1)
+},-10,10)
+
+joint(y=c(0,1,1,0,1),mu=1,1,0,1) / posterior(y=c(0,1,1,0,1),mu=1,1,0,1)
+```
